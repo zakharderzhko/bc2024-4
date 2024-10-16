@@ -32,3 +32,29 @@ const server = http.createServer((req, res) => {
     console.log(`Server running at http://${host}:${port}/`);
   });
 
+const fs = require('fs').promises;
+const path = require('path');
+
+async function getCachedImage(statusCode) {
+  const filePath = path.join(cache, `${statusCode}.jpg`);
+  try {
+    return await fs.readFile(filePath);
+  } catch (error) {
+    return null;  
+  }
+}
+
+const handleRequest = async (req, res) => {
+  const statusCode = req.url.slice(1);  
+
+  if (req.method === 'GET') {
+    const image = await getCachedImage(statusCode);
+    if (image) {
+      res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+      res.end(image);
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not Found');
+    }
+  } 
+};
